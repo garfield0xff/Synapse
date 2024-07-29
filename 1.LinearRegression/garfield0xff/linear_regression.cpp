@@ -6,6 +6,10 @@
 using namespace std;
 using namespace cv;
 
+/*
+    This Linear Regression Code is designed for understand linear relationship between images.
+*/
+
 class LinearRegression {
 
 public:
@@ -17,10 +21,12 @@ public:
     
 
 public:
+    // wx + b
     double linear_func(double _x_data, double _weights, double _bias) {
         return _x_data * _weights + _bias;
     }
 
+    // MSE loss function
     vector<double> loss_func(double _weights, double _bias)
     {
         weights = _weights;
@@ -34,7 +40,7 @@ public:
         return grad;
     }
 
-    
+    // update gradient ( central difference )
     double gradient_update(string grad_name)
     {
         double h = log(10)-4;
@@ -64,7 +70,7 @@ public:
         }
     }
 
-
+    // update linear
     vector<double> update()
     {
         vector<double> update_wb(2);
@@ -80,6 +86,8 @@ public:
 
 class RGBImage {
     public:
+
+        // RGB Data ( Vec3b ) -> Vector
         static void convertImageToVector(Mat& image, vector<int>& data) {
             data.clear();
             for(int y = 0; y < image.rows; y++)
@@ -94,6 +102,7 @@ class RGBImage {
             }
         }
 
+        // Vector -> Rgb Data( Vec3b )
         static void convertVectorToImage(vector<int>&data, Mat& image) {
             int index = 0;
             for(int y = 0; y < image.rows; y++)
@@ -112,21 +121,26 @@ class RGBImage {
 int main()
 {
     
+    // Set Image Data 
     Mat cat_image = imread("cat_image");
     Mat dog_image = imread("dog_image");
 
+    // Set Image Size
     Size imageSize = Size(200, 200);
     resize(cat_image, cat_image, imageSize);
     resize(dog_image, dog_image, imageSize);
 
     vector<int>x_data, y_data;
     
+    // RGB Vector -> Vector
     RGBImage::convertImageToVector(cat_image, x_data);
     RGBImage::convertImageToVector(dog_image, y_data);
     
+    // Set Rand( 0 ~ 1 )
     double weights = ((double)rand() / RAND_MAX);
     double bias = ((double)rand() / RAND_MAX);
 
+    // Set LinearRegression
     LinearRegression lr1;
 
     lr1.weights = weights;
@@ -134,6 +148,7 @@ int main()
     lr1.x_data = x_data;
     lr1.y_data = y_data;
     
+    // Train
     for(int i = 0; i < 2000; i++)
     {
         cout << "weights : " << "[" <<  weights << "]" << " " << "bias : " << "[" <<  bias << "]" ;
@@ -146,15 +161,18 @@ int main()
     cout << "Updated Weights : " <<  weights << endl;
     cout << "Updated bias : " <<  bias << endl;
 
+    // validate x_data ( cat image ) to y_data ( dog image )
     vector<int> new_data(x_data.size());
     for (int i = 0; i < x_data.size(); i++) {
         new_data[i] = static_cast<int>(lr1.linear_func(x_data[i], lr1.weights, lr1.bias));
         new_data[i] = min(max(new_data[i], 0), 255);
     }
 
+    // Set predict image
     Mat predict_image = cat_image.clone();
     RGBImage::convertVectorToImage(new_data, predict_image);
 
+    // Show Result
     imwrite("predict_image.jpg", predict_image);
     namedWindow("predict_image", WINDOW_AUTOSIZE);
     imshow("Original Cat image", cat_image);
